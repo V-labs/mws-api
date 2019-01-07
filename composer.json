@@ -1,0 +1,5 @@
+{
+    "name": "amazon/mws-api",
+    "description": "MWS php lib to use MWS API",
+    "require": {}
+}
