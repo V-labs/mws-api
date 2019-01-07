@@ -1,5 +1,9 @@
 {
     "name": "amazon/mws-api",
     "description": "MWS php lib to use MWS API",
-    "require": {}
+    "require": {},
+    "autoload": {
+        "psr-0": {"Amazon\\MWS\\": "src/"},
+        "psr-4": {"Amazon\\MWS\\": "src/"}
+    }
 }
