@@ -829,7 +829,7 @@ class MarketplaceWebService_Client implements MarketplaceWebService_Interface
           		
           	case 500:
           	case 503:
-          		require_once('MarketplaceWebService/Model/ErrorResponse.php');
+          		require_once ('Model/ErrorResponse.php');
 		          $errorResponse = MarketplaceWebService_Model_ErrorResponse::fromXML($response['ResponseBody']);
 		          
 		          // We will not retry throttling errors since this would just add to the throttling problem.
@@ -920,7 +920,7 @@ class MarketplaceWebService_Client implements MarketplaceWebService_Interface
 
     $parsedHeader = $this->parseHttpHeader($header);
 
-    require_once('MarketplaceWebService/Model/ResponseHeaderMetadata.php');
+    require_once ('Model/ResponseHeaderMetadata.php');
     $responseHeaderMetadata = new MarketplaceWebService_Model_ResponseHeaderMetadata(
               $parsedHeader['x-mws-request-id'],
               $parsedHeader['x-mws-response-context'],
