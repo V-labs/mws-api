@@ -265,8 +265,6 @@ abstract class MarketplaceWebService_Model
         }
     }
 
-
-
     /**
      * Determines if field is complex type
      * 
@@ -305,5 +303,158 @@ abstract class MarketplaceWebService_Model
     */
     protected function isNumericArray($var) {
         return is_array($var) && array_keys($var) === range(0, sizeof($var) - 1);
+    }
+
+    /**
+     * XML fragment representation of this object
+     * Note, name of the root determined by caller
+     * This fragment returns inner fields representation only
+     * @return string XML fragment for this object
+     */
+    protected function _toXMLFragment()
+    {
+        $xml = "";
+        foreach ($this->fields as $fieldName => $field) {
+            $fieldValue = $field['FieldValue'];
+            if (!is_null($fieldValue) && $field['FieldType'] != "MarketplaceWebService_Model_ResponseHeaderMetadata") {
+                $fieldType = $field['FieldType'];
+                if (is_array($fieldType)) {
+                    if ($fieldType[0] == "object") {
+                        foreach ($fieldValue as $item) {
+                            $newDoc = new DOMDocument();
+                            $importedNode = $newDoc->importNode($item, true);
+                            $newDoc->appendChild($importedNode);
+                            $xmlStr = $newDoc->saveXML();
+                            $xmlStr = substr($xmlStr, strpos($xmlStr, "?>") + 2);
+                            $xml .= trim($xmlStr);
+                        }
+                    } else if ($this->_isComplexType($fieldType[0])) {
+                        if (isset($field['ListMemberName'])) {
+                            $memberName = $field['ListMemberName'];
+                            $xml .= "<$fieldName>";
+                            foreach ($fieldValue as $item) {
+                                $xml .= "<$memberName>";
+                                $xml .= $item->_toXMLFragment();
+                                $xml .= "</$memberName>";
+                            }
+                            $xml .= "</$fieldName>";
+                        } else {
+                            foreach ($fieldValue as $item) {
+                                $xml .= "<$fieldName";
+                                $xml .= $item->_getAttributes();
+                                $xml .= ">";
+                                $xml .= $item->_toXMLFragment();
+                                $xml .= "</$fieldName>";
+                            }
+                        }
+                    } else {
+                        if(isset($field['ListMemberName'])) {
+                            $memberName = $field['ListMemberName'];
+                            $xml .= "<$fieldName>";
+                            foreach ($fieldValue as $item) {
+                                $xml .= "<$memberName>";
+                                $xml .= $this->_escapeXML($item);
+                                $xml .= "</$memberName>";
+                            }
+                            $xml .= "</$fieldName>";
+                        } else {
+                            foreach ($fieldValue as $item) {
+                                $xml .= "<$fieldName>";
+                                $xml .= $this->_escapeXML($item);
+                                $xml .= "</$fieldName>";
+                            }
+                        }
+                    }
+                } else {
+                    if ($this->_isComplexType($fieldType)) {
+                        $xml .= "<$fieldName";
+                        $xml .= $fieldValue->_getAttributes();
+                        $xml .= ">";
+                        $xml .= $fieldValue->_toXMLFragment();
+                        $xml .= "</$fieldName>";
+                    } else if($fieldType[0] == ".") {
+                        $xml .= $this->_escapeXML($fieldValue);
+                    } else if($fieldType[0] != "@") {
+                        $xml .= "<$fieldName>";
+                        $xml .= $this->_escapeXML($fieldValue);
+                        $xml .= "</$fieldName>";
+                    }
+                }
+            }
+        }
+        return $xml;
+    }
+
+    protected function _getAttributes() {
+        $xml = "";
+        foreach ($this->fields as $fieldName => $field) {
+            $fieldValue = $field['FieldValue'];
+            if (!is_null($fieldValue)) {
+                $fieldType = $field['FieldType'];
+                if($fieldType[0] == "@") {
+                    $xml .= " " . $fieldName . "='" . $this->_escapeXML($fieldValue) . "'";
+                }
+            }
+        }
+        return $xml;
+    }
+
+    /**
+     * Escape special XML characters
+     * @return string with escaped XML characters
+     */
+    private function _escapeXML($str)
+    {
+        $from = array( "&", "<", ">", "'", "\"");
+        $to = array( "&amp;", "&lt;", "&gt;", "&#039;", "&quot;");
+        return str_replace($from, $to, $str instanceof DateTime ? $str->format('Y-m-d H:i:s') : $str);
+    }
+
+    /**
+     * Determines if field is complex type
+     *
+     * @param string $fieldType field type name
+     */
+    private function _isComplexType ($fieldType)
+    {
+        return preg_match("/^MarketplaceWebService_/", $fieldType);
+    }
+
+    /**
+     * Checks  whether passed variable is an associative array
+     *
+     * @param mixed $var
+     * @return TRUE if passed variable is an associative array
+     */
+    private function _isAssociativeArray($var)
+    {
+        return is_array($var) && array_keys($var) !== range(0, sizeof($var) - 1);
+    }
+
+    /**
+     * Checks  whether passed variable is DOMElement
+     *
+     * @param mixed $var
+     * @return TRUE if passed variable is DOMElement
+     */
+    private function _isDOMElement($var)
+    {
+        return $var instanceof DOMElement;
+    }
+
+    /**
+     * Checks  whether passed variable is numeric array
+     *
+     * @param mixed $var
+     * @return TRUE if passed variable is an numeric array
+     */
+    protected function _isNumericArray($var)
+    {
+        if (!is_array($var))
+        {
+            return false;
+        }
+        $sz = sizeof($var);
+        return ($sz===0 || array_keys($var) === range(0, sizeof($var) - 1));
     }
 }
